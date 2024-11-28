@@ -15,6 +15,7 @@
 
 ConVar g_cvWebhook, g_cvWebhookRetry, g_cvAvatar;
 ConVar g_cvChannelType, g_cvThreadName, g_cvThreadID;
+ConVar g_cvAuthID;
 
 char g_sMap[PLATFORM_MAX_PATH];
 bool g_Plugin_ZR = false;
@@ -26,7 +27,7 @@ public Plugin myinfo =
 	name         = PLUGIN_NAME,
 	author       = ".Rushaway",
 	description  = "Discord support based on BoostAlert forwards",
-	version      = "1.0.0",
+	version      = "1.0.1",
 	url          = "https://github.com/srcdslab/sm-plugin-BoostAlert-discord"
 };
 
@@ -46,6 +47,10 @@ public void OnPluginStart()
 
 public void OnAllPluginsLoaded()
 {
+	// This is an BoostAlert cvar... this plugin requires BoostAlert to be loaded.
+	// Granted, this plugin SHOULD have an BoostAlert dependency.
+	g_cvAuthID = FindConVar("sm_boostalert_authid");
+
 	g_Plugin_ZR = LibraryExists("zombiereloaded");
 	g_Plugin_AutoRecorder = LibraryExists("AutoRecorder");
 	g_Plugin_ExtDiscord = LibraryExists("ExtendedDiscord");
@@ -78,43 +83,70 @@ public void OnMapStart()
 	ReplaceString(g_sMap, sizeof(g_sMap), ".", "_", false);
 }
 
-public void BoostAlert_OnAlert(int attacker, int victim, int damage, char[] sWeapon)
+public void BoostAlert_OnBoost(int attacker, int victim, int damage, const char[] sWeapon)
 {
+	int iKnife = StrContains(sWeapon, "knife", false);
+
 	char sMessage[1300];
-	int iKnife = StrContains(sWeapon, "knife", false);
+	char sAuth_attacker[64], sAuth_victim[64];
+
+	AuthIdType authType = view_as<AuthIdType>(GetConVarInt(g_cvAuthID));
+	GetClientAuthId(attacker, authType, sAuth_attacker, sizeof(sAuth_attacker));
+	GetClientAuthId(victim, authType, sAuth_victim, sizeof(sAuth_victim));
+
+	if (authType == AuthId_Steam3)
+	{
+		ReplaceString(sAuth_attacker, sizeof(sAuth_attacker), "[", "");
+		ReplaceString(sAuth_attacker, sizeof(sAuth_attacker), "]", "");
+		ReplaceString(sAuth_victim, sizeof(sAuth_victim), "[", "");
+		ReplaceString(sAuth_victim, sizeof(sAuth_victim), "]", "");
+	}
 
 	if (iKnife != -1)
-		FormatEx(sMessage, sizeof(sMessage), "%L knifed %L (-%d HP)", attacker, victim, damage);
+		FormatEx(sMessage, sizeof(sMessage), "%N [%s] knifed %N [%s] (-%d HP)", attacker, sAuth_attacker, victim, sAuth_victim, damage);
 	else
-		FormatEx(sMessage, sizeof(sMessage), "%L boosted %L with %s (-%d HP)", attacker, victim, sWeapon, damage);
+		FormatEx(sMessage, sizeof(sMessage), "%N [%s] boosted %N [%s] with %s (-%d HP)", attacker, sAuth_attacker, victim, sAuth_victim, sWeapon, damage);
 
 	PrepareDiscord_Message(sMessage);
 }
 
-public void BoostAlert_OnKill(int attacker, char[] Auth_attacker, int victim, char[] Auth_victim, int pOldKnifer, char[] Auth_OldKnifer, int damage, char[] sWeapon)
+public void BoostAlert_OnBoostedKill(int attacker, int victim, int iInitialAttacker, int damage, char[] sWeapon)
 {
 	char sType[32], sMessage[1300];
 	int iKnife = StrContains(sWeapon, "knife", false);
 	sType = g_Plugin_ZR ? "infected" : "killed";
 
-	if (iKnife != -1)
-		FormatEx(sMessage, sizeof(sMessage), "%L knifed (-%d HP) %L (Recently knifed by %L)", attacker, victim, damage, pOldKnifer);
+	char sAuth_attacker[64], sAuth_victim[64], sAuth_InitBooster[64];
+
+	AuthIdType authType = view_as<AuthIdType>(GetConVarInt(g_cvAuthID));
+	GetClientAuthId(attacker, authType, sAuth_attacker, sizeof(sAuth_attacker));
+	GetClientAuthId(victim, authType, sAuth_victim, sizeof(sAuth_victim));
+	GetClientAuthId(iInitialAttacker, authType, sAuth_InitBooster, sizeof(sAuth_InitBooster));
+
+	if (authType == AuthId_Steam3)
+	{
+		ReplaceString(sAuth_attacker, sizeof(sAuth_attacker), "[", "");
+		ReplaceString(sAuth_attacker, sizeof(sAuth_attacker), "]", "");
+		ReplaceString(sAuth_victim, sizeof(sAuth_victim), "[", "");
+		ReplaceString(sAuth_victim, sizeof(sAuth_victim), "]", "");
+		ReplaceString(sAuth_InitBooster, sizeof(sAuth_InitBooster), "[", "");
+		ReplaceString(sAuth_InitBooster, sizeof(sAuth_InitBooster), "]", "");
+	}
+
+	if (iInitialAttacker == 0)
+	{
+		if (iKnife != -1)
+			FormatEx(sMessage, sizeof(sMessage), "%N [%s] knifed %N [%s] (-%d HP) (Recently knifed by a disconnected player)", attacker, sAuth_attacker, victim, sAuth_victim, damage);
+		else
+			FormatEx(sMessage, sizeof(sMessage), "%N [%s] %s %N [%s] with %s (-%d HP) (Recently boosted by a disconnected player)", attacker, sAuth_attacker, sType, victim, sAuth_victim, sWeapon, damage);
+	}
 	else
-		FormatEx(sMessage, sizeof(sMessage), "%L %s %L with %s (-%d HP) (Recently boosted by %L)", attacker, sType, victim, sWeapon, pOldKnifer);
-
-	PrepareDiscord_Message(sMessage);
-}
-
-public void BoostAlert_OnKillDisconnect(int attacker, char[] Auth_attacker, int victim, char[] Auth_victim, char[] Auth_OldKnifer, int damage, char[] sWeapon)
-{
-	int iKnife = StrContains(sWeapon, "knife", false);
-	char sType[32], sMessage[1300];
-	sType = g_Plugin_ZR ? "infected" : "killed";
-
-	if (iKnife != -1)
-		FormatEx(sMessage, sizeof(sMessage), "%L %s %L (Recently knifed by a disconnected player [%s])", attacker, sType, victim, Auth_OldKnifer);
-	else
-		FormatEx(sMessage, sizeof(sMessage), "%L %s %L with %s (Recently boosted by a disconnected player [%s])", attacker, sType, victim, sWeapon, Auth_OldKnifer);
+	{
+		if (iKnife != -1)
+			FormatEx(sMessage, sizeof(sMessage), "%N [%s] knifed (-%d HP) %N [%s] (Recently knifed by %N [%s])", attacker, sAuth_attacker, victim, sAuth_victim, damage, iInitialAttacker, sAuth_InitBooster);
+		else
+			FormatEx(sMessage, sizeof(sMessage), "%N [%s] %s %N [%s] with %s (-%d HP) (Recently boosted by %N [%s])", attacker, sAuth_attacker, sType, victim, sAuth_victim, sWeapon, damage, iInitialAttacker, sAuth_InitBooster);
+	}
 
 	PrepareDiscord_Message(sMessage);
 }
