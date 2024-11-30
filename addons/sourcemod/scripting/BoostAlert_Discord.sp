@@ -205,9 +205,9 @@ stock void SendWebHook(char sMessage[1300], char sWebhookURL[WEBHOOK_URL_MAX_SIZ
 	g_cvThreadID.GetString(sThreadID, sizeof sThreadID);
 	g_cvThreadName.GetString(sThreadName, sizeof sThreadName);
 
-	bool IsThread = g_cvChannelType.BoolValue;
+	bool isThread = g_cvChannelType.BoolValue;
 
-	if (IsThread)
+	if (isThread)
 	{
 		if (!sThreadName[0] && !sThreadID[0])
 		{
@@ -233,7 +233,7 @@ stock void SendWebHook(char sMessage[1300], char sWebhookURL[WEBHOOK_URL_MAX_SIZ
 
 	DataPack pack = new DataPack();
 
-	if (IsThread && strlen(sThreadName) <= 0 && strlen(sThreadID) > 0)
+	if (isThread && strlen(sThreadName) <= 0 && strlen(sThreadID) > 0)
 		pack.WriteCell(1);
 	else
 		pack.WriteCell(0);
@@ -250,7 +250,7 @@ public void OnWebHookExecuted(HTTPResponse response, DataPack pack)
 	static int retries = 0;
 	pack.Reset();
 
-	bool IsThreadReply = pack.ReadCell();
+	bool isThreadReply = pack.ReadCell();
 
 	char sMessage[1300], sWebhookURL[WEBHOOK_URL_MAX_SIZE];
 	pack.ReadString(sMessage, sizeof(sMessage));
@@ -258,7 +258,7 @@ public void OnWebHookExecuted(HTTPResponse response, DataPack pack)
 
 	delete pack;
 
-	if (!IsThreadReply && response.Status != HTTPStatus_OK)
+	if (!isThreadReply && response.Status != HTTPStatus_OK)
 	{
 		if (retries < g_cvWebhookRetry.IntValue)
 		{
@@ -278,7 +278,7 @@ public void OnWebHookExecuted(HTTPResponse response, DataPack pack)
 		}
 	}
 
-	else if (IsThreadReply && response.Status != HTTPStatus_NoContent)
+	else if (isThreadReply && response.Status != HTTPStatus_NoContent)
 	{
 		if (retries < g_cvWebhookRetry.IntValue)
 		{
