@@ -91,8 +91,8 @@ public void BoostAlert_OnBoost(int attacker, int victim, int damage, const char[
 	char sAuth_attacker[64], sAuth_victim[64];
 
 	AuthIdType authType = view_as<AuthIdType>(GetConVarInt(g_cvAuthID));
-	GetClientAuthId(attacker, authType, sAuth_attacker, sizeof(sAuth_attacker));
-	GetClientAuthId(victim, authType, sAuth_victim, sizeof(sAuth_victim));
+	GetClientAuthId(attacker, authType, sAuth_attacker, sizeof(sAuth_attacker), false);
+	GetClientAuthId(victim, authType, sAuth_victim, sizeof(sAuth_victim), false);
 
 	if (authType == AuthId_Steam3)
 	{
