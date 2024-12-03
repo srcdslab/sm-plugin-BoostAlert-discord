@@ -21,14 +21,21 @@ project:
       type: git
       repo: https://github.com/srcdslab/sm-plugin-BoostAlert
       unpack:
-      - source: /include
+      - source: /addons/sourcemod/scripting/include
         dest: /addons/sourcemod/scripting/include
 
     - name: AutoRecorder
       type: git
       repo: https://github.com/srcdslab/sm-plugin-AutoRecorder
       unpack:
-      - source: /include
+      - source: /addons/sourcemod/scripting/include
+        dest: /addons/sourcemod/scripting/include
+
+    - name: ExtendedDiscord
+      type: git
+      repo: https://github.com/srcdslab/sm-plugin-Extended-Discord
+      unpack:
+      - source: /addons/sourcemod/scripting/include
         dest: /addons/sourcemod/scripting/include
 
   root: /

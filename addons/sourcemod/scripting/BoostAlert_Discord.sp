@@ -27,7 +27,7 @@ public Plugin myinfo =
 	name         = PLUGIN_NAME,
 	author       = ".Rushaway",
 	description  = "Discord support based on BoostAlert forwards",
-	version      = "1.0.1",
+	version      = "1.0.2",
 	url          = "https://github.com/srcdslab/sm-plugin-BoostAlert-discord"
 };
 
@@ -91,8 +91,8 @@ public void BoostAlert_OnBoost(int attacker, int victim, int damage, const char[
 	char sAuth_attacker[64], sAuth_victim[64];
 
 	AuthIdType authType = view_as<AuthIdType>(GetConVarInt(g_cvAuthID));
-	GetClientAuthId(attacker, authType, sAuth_attacker, sizeof(sAuth_attacker));
-	GetClientAuthId(victim, authType, sAuth_victim, sizeof(sAuth_victim));
+	GetClientAuthId(attacker, authType, sAuth_attacker, sizeof(sAuth_attacker), false);
+	GetClientAuthId(victim, authType, sAuth_victim, sizeof(sAuth_victim), false);
 
 	if (authType == AuthId_Steam3)
 	{
@@ -119,9 +119,9 @@ public void BoostAlert_OnBoostedKill(int attacker, int victim, int iInitialAttac
 	char sAuth_attacker[64], sAuth_victim[64], sAuth_InitBooster[64];
 
 	AuthIdType authType = view_as<AuthIdType>(GetConVarInt(g_cvAuthID));
-	GetClientAuthId(attacker, authType, sAuth_attacker, sizeof(sAuth_attacker));
-	GetClientAuthId(victim, authType, sAuth_victim, sizeof(sAuth_victim));
-	GetClientAuthId(iInitialAttacker, authType, sAuth_InitBooster, sizeof(sAuth_InitBooster));
+	GetClientAuthId(attacker, authType, sAuth_attacker, sizeof(sAuth_attacker), false);
+	GetClientAuthId(victim, authType, sAuth_victim, sizeof(sAuth_victim), false);
+	GetClientAuthId(iInitialAttacker, authType, sAuth_InitBooster, sizeof(sAuth_InitBooster), false);
 
 	if (authType == AuthId_Steam3)
 	{
@@ -143,7 +143,7 @@ public void BoostAlert_OnBoostedKill(int attacker, int victim, int iInitialAttac
 	else
 	{
 		if (iKnife != -1)
-			FormatEx(sMessage, sizeof(sMessage), "%N [%s] knifed (-%d HP) %N [%s] (Recently knifed by %N [%s])", attacker, sAuth_attacker, victim, sAuth_victim, damage, iInitialAttacker, sAuth_InitBooster);
+			FormatEx(sMessage, sizeof(sMessage), "%N [%s] knifed (-%d HP) %N [%s] (Recently knifed by %N [%s])", attacker, sAuth_attacker, damage, victim, sAuth_victim, iInitialAttacker, sAuth_InitBooster);
 		else
 			FormatEx(sMessage, sizeof(sMessage), "%N [%s] %s %N [%s] with %s (-%d HP) (Recently boosted by %N [%s])", attacker, sAuth_attacker, sType, victim, sAuth_victim, sWeapon, damage, iInitialAttacker, sAuth_InitBooster);
 	}
