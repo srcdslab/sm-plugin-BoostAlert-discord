@@ -27,7 +27,7 @@ public Plugin myinfo =
 	name         = PLUGIN_NAME,
 	author       = ".Rushaway",
 	description  = "Discord support based on BoostAlert forwards",
-	version      = "1.0.2",
+	version      = "1.0.3",
 	url          = "https://github.com/srcdslab/sm-plugin-BoostAlert-discord"
 };
 
@@ -60,9 +60,9 @@ public void OnLibraryAdded(const char[] sName)
 {
 	if (strcmp(sName, "zombiereloaded", false) == 0)
 		g_Plugin_ZR = true;
-	if (strcmp(sName, "AutoRecorder", false) == 0)
+	else if (strcmp(sName, "AutoRecorder", false) == 0)
 		g_Plugin_AutoRecorder = true;
-	if (strcmp(sName, "ExtendedDiscord", false) == 0)
+	else if (strcmp(sName, "ExtendedDiscord", false) == 0)
 		g_Plugin_ExtDiscord = true;
 }
 
@@ -70,9 +70,9 @@ public void OnLibraryRemoved(const char[] sName)
 {
 	if (strcmp(sName, "zombiereloaded", false) == 0)
 		g_Plugin_ZR = false;
-	if (strcmp(sName, "AutoRecorder", false) == 0)
+	else if (strcmp(sName, "AutoRecorder", false) == 0)
 		g_Plugin_AutoRecorder = false;
-	if (strcmp(sName, "ExtendedDiscord", false) == 0)
+	else if (strcmp(sName, "ExtendedDiscord", false) == 0)
 		g_Plugin_ExtDiscord = false;
 }
 
