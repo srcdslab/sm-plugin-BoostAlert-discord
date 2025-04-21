@@ -27,7 +27,7 @@ public Plugin myinfo =
 	name         = PLUGIN_NAME,
 	author       = ".Rushaway",
 	description  = "Discord support based on BoostAlert forwards",
-	version      = "1.0.3",
+	version      = "1.0.4",
 	url          = "https://github.com/srcdslab/sm-plugin-BoostAlert-discord"
 };
 
@@ -161,6 +161,18 @@ stock void PrepareDiscord_Message(const char[] message)
 		return;
 	}
 
+	char sEscapedMessage[WEBHOOK_MSG_MAX_SIZE];
+ 	FormatEx(sEscapedMessage, sizeof(sEscapedMessage), "%s", message);
+ 	ReplaceString(sEscapedMessage, sizeof(sEscapedMessage), "`", "\\`");
+ 	ReplaceString(sEscapedMessage, sizeof(sEscapedMessage), "*", "\\*");
+ 	// ReplaceString(sEscapedMessage, sizeof(sEscapedMessage), "_", "\\_"); // Not used because maps can have "_"
+ 	ReplaceString(sEscapedMessage, sizeof(sEscapedMessage), "~", "\\~");
+ 	ReplaceString(sEscapedMessage, sizeof(sEscapedMessage), "|", "\\|");
+ 	ReplaceString(sEscapedMessage, sizeof(sEscapedMessage), "> ", ">");
+ 	ReplaceString(sEscapedMessage, sizeof(sEscapedMessage), "/", "୵"); // Prevent URLs from being embedded
+ 	ReplaceString(sEscapedMessage, sizeof(sEscapedMessage), "@", "ⓐ"); // Because it is a webhook, it bypasses the permission
+ 	ReplaceString(sEscapedMessage, sizeof(sEscapedMessage), "\"", ""); // Prevent messages from being cut off
+
 	char sTime[64], sMessage[1300];
 	int iTime = GetTime();
 	FormatTime(sTime, sizeof(sTime), "%m/%d/%Y @ %H:%M:%S", iTime);
@@ -184,15 +196,12 @@ stock void PrepareDiscord_Message(const char[] message)
 			FormatTime(sDate, sizeof(sDate), "%d.%m.%Y @ %H:%M", retValTime);
 		#endif
 		Format(sMessage, sizeof(sMessage), "%s *(CT: %d | T: %d) - %s* - Demo: %d @ Tick: ≈ %d *(Started %s)* ```%s```",
-			g_sMap, GetTeamScore(3), GetTeamScore(2), sTime, iCount, iTick, sDate, message);
+			g_sMap, GetTeamScore(3), GetTeamScore(2), sTime, iCount, iTick, sDate, sEscapedMessage);
 	}
 	else
 	{
-		Format(sMessage, sizeof(sMessage), "%s *(CT: %d | T: %d) - %s* ```%s```", g_sMap, GetTeamScore(3), GetTeamScore(2), sTime, message);
+		Format(sMessage, sizeof(sMessage), "%s *(CT: %d | T: %d) - %s* ```%s```", g_sMap, GetTeamScore(3), GetTeamScore(2), sTime, sEscapedMessage);
 	}
-
-	if(StrContains(sMessage, "\"") != -1)
-		ReplaceString(sMessage, sizeof(sMessage), "\"", "");
 
 	SendWebHook(sMessage, sWebhookURL);
 }
