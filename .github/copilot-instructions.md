@@ -35,36 +35,47 @@ g_Plugin_AutoRecorder = LibraryExists("AutoRecorder");
 #define REQUIRE_PLUGIN
 ```
 
-## Build System: SourceKnight
+## Build System
 
-This project uses **SourceKnight** for dependency management and compilation, NOT traditional SourceMod compilation.
+This project is compiled with the SourcePawn compiler (`spcomp`) via a native GitHub Actions workflow, NOT SourceKnight.
 
-### Build Configuration (`sourceknight.yaml`)
-- **Project Name**: BoostAlert_Discord
-- **Output Directory**: `/addons/sourcemod/plugins`
-- **Target**: BoostAlert_Discord (compiles BoostAlert_Discord.sp)
+### Compiler & Dependencies
+The plugin is compiled with `spcomp` from **SourceMod 1.12.x**.
+Include dependencies are cloned from their upstream repositories and copied into
+`addons/sourcemod/scripting/include/`:
 
-### Dependencies Auto-Downloaded
-```yaml
-dependencies:
-  - sourcemod (base platform)
-  - discordwebapi (from GitHub)
-  - BoostAlert (from GitHub) 
-  - AutoRecorder (from GitHub)
-  - ExtendedDiscord (from GitHub)
-```
+| Include | Repository |
+| --- | --- |
+| `discordWebhookAPI` | https://github.com/srcdslab/sm-plugin-DiscordWebhookAPI |
+| `BoostAlert` | https://github.com/srcdslab/sm-plugin-BoostAlert |
+| `AutoRecorder` | https://github.com/srcdslab/sm-plugin-AutoRecorder |
+| `ExtendedDiscord` | https://github.com/srcdslab/sm-plugin-Extended-Discord |
 
-### Build Commands (if SourceKnight available)
+### Build Commands
 ```bash
-# Install SourceKnight first (done in CI via action-sourceknight)
-sourceknight build              # Compile plugin
-sourceknight clean              # Clean build artifacts
+# Fetch include dependencies
+mkdir -p addons/sourcemod/scripting/include deps
+git clone --depth=1 https://github.com/srcdslab/sm-plugin-DiscordWebhookAPI.git deps/discordwebapi
+cp -R deps/discordwebapi/include/* addons/sourcemod/scripting/include/
+git clone --depth=1 https://github.com/srcdslab/sm-plugin-BoostAlert.git deps/boostalert
+cp -R deps/boostalert/addons/sourcemod/scripting/include/* addons/sourcemod/scripting/include/
+git clone --depth=1 https://github.com/srcdslab/sm-plugin-AutoRecorder.git deps/autorecorder
+cp -R deps/autorecorder/addons/sourcemod/scripting/include/* addons/sourcemod/scripting/include/
+git clone --depth=1 https://github.com/srcdslab/sm-plugin-Extended-Discord.git deps/extendeddiscord
+cp -R deps/extendeddiscord/addons/sourcemod/scripting/include/* addons/sourcemod/scripting/include/
+
+# Build the plugin
+cd addons/sourcemod/scripting
+mkdir -p ../plugins
+spcomp -i include -o ../plugins/BoostAlert_Discord.smx BoostAlert_Discord.sp
 ```
 
 ### CI/CD Pipeline
-- **Build**: Uses `maxime1907/action-sourceknight@v1`
-- **Outputs**: Compiled .smx files to `/tmp/package`
-- **Release**: Auto-creates releases on tags and main branch pushes
+`.github/workflows/ci.yml` (native GitHub Actions, no external build tool):
+- **Trigger**: Push, PR, or manual dispatch
+- **Build**: `rumblefrog/setup-sp` installs the 1.12.x compiler, then `spcomp` builds `BoostAlert_Discord.sp`
+- **Release**: Creates tagged releases with compiled binaries
+- **Artifacts**: Uploads build results for testing
 
 ## Code Style & Patterns
 
@@ -280,11 +291,11 @@ ReplaceString(sEscapedMessage, sizeof(sEscapedMessage), "/", "୵");
 
 ## Development Environment Setup
 
-Since this repository uses SourceKnight rather than traditional SourceMod development:
+This repository uses native GitHub Actions (`spcomp` + `rumblefrog/setup-sp`) for builds:
 
-1. **For Code Changes**: Edit `.sp` files directly, SourceKnight handles compilation
-2. **For Testing**: Use the GitHub Actions CI or set up SourceKnight locally
-3. **For Dependencies**: They're auto-downloaded by SourceKnight from GitHub
+1. **For Code Changes**: Edit `.sp` files directly; the CI workflow handles compilation
+2. **For Testing**: Use the GitHub Actions CI, or run the build commands above locally with a matching `spcomp` binary
+3. **For Dependencies**: They're cloned fresh from GitHub on each CI run (see the Build Commands section)
 4. **For Releases**: Tags automatically trigger builds and releases
 
 This plugin is well-architected and follows SourcePawn best practices. Focus on maintaining the existing patterns when making modifications.
