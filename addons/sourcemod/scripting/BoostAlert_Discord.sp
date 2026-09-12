@@ -267,27 +267,8 @@ public void OnWebHookExecuted(HTTPResponse response, DataPack pack)
 
 	delete pack;
 
-	if (!isThreadReply && response.Status != HTTPStatus_OK)
-	{
-		if (retries < g_cvWebhookRetry.IntValue)
-		{
-			PrintToServer("[%s] Failed to send the webhook. Resending it .. (%d/%d)", PLUGIN_NAME, retries, g_cvWebhookRetry.IntValue);
-			SendWebHook(sMessage, sWebhookURL);
-			retries++;
-			return;
-		} else {
-		#if defined _extendeddiscord_included
-			if (g_Plugin_ExtDiscord)
-				ExtendedDiscord_LogError("[%s] Failed to send the webhook after %d retries, aborting.", PLUGIN_NAME, retries);
-			else
-				LogError("[%s] Failed to send the webhook after %d retries, aborting.", PLUGIN_NAME, retries);
-		#else
-			LogError("[%s] Failed to send the webhook after %d retries, aborting.", PLUGIN_NAME, retries);
-		#endif
-		}
-	}
-
-	else if (isThreadReply && response.Status != HTTPStatus_NoContent)
+	bool bFailed = (response.Status != HTTPStatus_OK && response.Status != HTTPStatus_NoContent);
+	if (bFailed)
 	{
 		if (retries < g_cvWebhookRetry.IntValue)
 		{
