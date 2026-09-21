@@ -27,7 +27,7 @@ public Plugin myinfo =
 	name         = PLUGIN_NAME,
 	author       = ".Rushaway",
 	description  = "Discord support based on BoostAlert forwards",
-	version      = "1.1.0",
+	version      = "1.1.1",
 	url          = "https://github.com/srcdslab/sm-plugin-BoostAlert-discord"
 };
 
@@ -206,7 +206,7 @@ stock void PrepareDiscord_Message(const char[] message)
 	SendWebHook(sMessage, sWebhookURL);
 }
 
-stock void SendWebHook(char sMessage[1300], char sWebhookURL[WEBHOOK_URL_MAX_SIZE])
+stock void SendWebHook(char sMessage[1300], char sWebhookURL[WEBHOOK_URL_MAX_SIZE], int retries = 0)
 {
 	Webhook webhook = new Webhook(sMessage);
 
@@ -235,6 +235,7 @@ stock void SendWebHook(char sMessage[1300], char sWebhookURL[WEBHOOK_URL_MAX_SIZ
 
 	pack.WriteString(sMessage);
 	pack.WriteString(sWebhookURL);
+	pack.WriteCell(retries);
 
 	webhook.Execute(sWebhookURL, OnWebHookExecuted, pack, sThreadID);
 	delete webhook;
@@ -242,12 +243,12 @@ stock void SendWebHook(char sMessage[1300], char sWebhookURL[WEBHOOK_URL_MAX_SIZ
 
 public void OnWebHookExecuted(HTTPResponse response, DataPack pack)
 {
-	static int retries = 0;
 	pack.Reset();
 
 	char sMessage[1300], sWebhookURL[WEBHOOK_URL_MAX_SIZE];
 	pack.ReadString(sMessage, sizeof(sMessage));
 	pack.ReadString(sWebhookURL, sizeof(sWebhookURL));
+	int retries = pack.ReadCell();
 
 	delete pack;
 
@@ -257,8 +258,7 @@ public void OnWebHookExecuted(HTTPResponse response, DataPack pack)
 		if (retries < g_cvWebhookRetry.IntValue)
 		{
 			PrintToServer("[%s] Failed to send the webhook (HTTP %d). Resending it .. (%d/%d)", PLUGIN_NAME, view_as<int>(response.Status), retries, g_cvWebhookRetry.IntValue);
-			SendWebHook(sMessage, sWebhookURL);
-			retries++;
+			SendWebHook(sMessage, sWebhookURL, retries + 1);
 			return;
 		} else {
 		#if defined _extendeddiscord_included
@@ -271,6 +271,4 @@ public void OnWebHookExecuted(HTTPResponse response, DataPack pack)
 		#endif
 		}
 	}
-
-	retries = 0;
 }
