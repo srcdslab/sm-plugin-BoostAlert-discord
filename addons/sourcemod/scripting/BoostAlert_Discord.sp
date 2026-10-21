@@ -27,7 +27,7 @@ public Plugin myinfo =
 	name         = PLUGIN_NAME,
 	author       = ".Rushaway",
 	description  = "Discord support based on BoostAlert forwards",
-	version      = "1.1.1",
+	version      = "1.1.2",
 	url          = "https://github.com/srcdslab/sm-plugin-BoostAlert-discord"
 };
 
@@ -90,7 +90,7 @@ public void BoostAlert_OnBoost(int attacker, int victim, int damage, const char[
 	char sMessage[1300];
 	char sAuth_attacker[64], sAuth_victim[64];
 
-	AuthIdType authType = view_as<AuthIdType>(GetConVarInt(g_cvAuthID));
+	AuthIdType authType = view_as<AuthIdType>(g_cvAuthID.IntValue);
 	GetClientAuthId(attacker, authType, sAuth_attacker, sizeof(sAuth_attacker), false);
 	GetClientAuthId(victim, authType, sAuth_victim, sizeof(sAuth_victim), false);
 
@@ -118,7 +118,7 @@ public void BoostAlert_OnBoostedKill(int attacker, int victim, int iInitialAttac
 
 	char sAuth_attacker[64], sAuth_victim[64], sAuth_InitBooster[64];
 
-	AuthIdType authType = view_as<AuthIdType>(GetConVarInt(g_cvAuthID));
+	AuthIdType authType = view_as<AuthIdType>(g_cvAuthID.IntValue);
 	GetClientAuthId(attacker, authType, sAuth_attacker, sizeof(sAuth_attacker), false);
 	GetClientAuthId(victim, authType, sAuth_victim, sizeof(sAuth_victim), false);
 	GetClientAuthId(iInitialAttacker, authType, sAuth_InitBooster, sizeof(sAuth_InitBooster), false);
