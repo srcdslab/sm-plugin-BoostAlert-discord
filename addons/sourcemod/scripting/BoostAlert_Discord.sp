@@ -27,7 +27,7 @@ public Plugin myinfo =
 	name         = PLUGIN_NAME,
 	author       = ".Rushaway",
 	description  = "Discord support based on BoostAlert forwards",
-	version      = "1.1.3",
+	version      = "1.1.4",
 	url          = "https://github.com/srcdslab/sm-plugin-BoostAlert-discord"
 };
 
